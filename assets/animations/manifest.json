@@ -1,0 +1,68 @@
+{
+  "Jarak": {
+    "bbox": [
+      328,
+      816,
+      738,
+      1213
+    ],
+    "frames": 750,
+    "duration_ms": 30000,
+    "sha256": "264417e004f6f6fe7ed24a7de5b9843c7f85389c4742585bcb1b0505d312fe6c"
+  },
+  "Jeda": {
+    "bbox": [
+      161,
+      209,
+      450,
+      604
+    ],
+    "frames": 500,
+    "duration_ms": 20000,
+    "sha256": "daf255d4694de8a1cd19ea9a73536e67c41948f18ca0565c7777a722ff1f468d"
+  },
+  "Minum": {
+    "bbox": [
+      401,
+      742,
+      683,
+      1179
+    ],
+    "frames": 501,
+    "duration_ms": 20040,
+    "sha256": "9516c6afc4616c9cd7e1979b9ce5d36912845c574b469fb9b8769bef07b6b2b5"
+  },
+  "Ngantuk": {
+    "bbox": [
+      401,
+      742,
+      682,
+      1179
+    ],
+    "frames": 498,
+    "duration_ms": 19920,
+    "sha256": "b33819c1f3a3cf86be4084d930530a5e6950c081ec3d08e962a1ceb1ebfff7ee"
+  },
+  "Postur": {
+    "bbox": [
+      315,
+      778,
+      744,
+      1179
+    ],
+    "frames": 499,
+    "duration_ms": 19960,
+    "sha256": "f85fdc2c708fc3485d7db8b19459383c8823fbbdbfcfe49a07baf63fdfd2219f"
+  },
+  "Tidur": {
+    "bbox": [
+      332,
+      708,
+      752,
+      1064
+    ],
+    "frames": 499,
+    "duration_ms": 19960,
+    "sha256": "774c922501b34ca501daec920647290734d810fddc4f9c3ebce6bef47141eaca"
+  }
+}

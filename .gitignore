@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+sessions/
+logs/
+cloud_config.json
+cloud/deployment_receipt.json
+cloud/runtime_iam_policy.json
+ui_preferences.json
+posture_reference.json
+.aws/
+.env
+*.mp4
+*.avi
+*.mov
+*.webm

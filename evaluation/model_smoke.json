@@ -1,0 +1,7 @@
+{
+  "type": "blank_frame_model_smoke_test_not_accuracy",
+  "opencv": "5.0.0",
+  "face_observed": false,
+  "sip_recorded": false,
+  "elapsed_seconds": 0.567
+}

@@ -1,0 +1,23 @@
+{
+  "nanodet": {
+    "repository": "https://github.com/opencv/opencv_zoo",
+    "revision": "25f423d0e04c31a17254620e58febd7386da523b",
+    "sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+    "bytes": 3800954,
+    "license": "Apache-2.0"
+  },
+  "vittrack": {
+    "repository": "https://github.com/opencv/opencv_zoo",
+    "revision": "25f423d0e04c31a17254620e58febd7386da523b",
+    "sha256": "2990f0b7cd44d92afa48cd97db6de7be113fc1d9594fddb74e2725c10478e91d",
+    "bytes": 714726,
+    "license_file": "vendor/LICENSE-vittrack.txt"
+  },
+  "yunet": {
+    "repository": "https://github.com/opencv/opencv_zoo",
+    "revision": "eb9f4f2d4b79b58e5513b5d25d5f0243a8357bf4",
+    "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+    "bytes": 232589,
+    "license_file": "vendor/LICENSE-yunet.txt"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "straw_assist": {
+    "enabled": false
+  },
+  "automatic_meeting": {
+    "enabled": false
+  },
+  "automatic_drinking": {
+    "enabled": true
+  },
+  "distance": {
+    "enabled": true,
+    "size_ratio": 1.25,
+    "hold_seconds": 20
+  },
+  "fatigue": {
+    "enabled": true,
+    "warmup_seconds": 10800,
+    "closure_seconds": 1.5
+  },
+  "posture": {
+    "enabled": true,
+    "window_seconds": 60
+  },
+  "water": {
+    "enabled": true,
+    "interval_seconds": 3600
+  },
+  "movement": {
+    "enabled": true,
+    "interval_seconds": 3600
+  },
+  "eyes": {
+    "enabled": true,
+    "interval_seconds": 7200
+  },
+  "sleep": {
+    "enabled": true,
+    "interval_seconds": 86400
+  },
+  "dark_camera": {
+    "enabled": true,
+    "brightness_threshold": 35,
+    "hold_seconds": 5
+  },
+  "break_seconds": 1800,
+  "snooze_seconds": 300
+}

@@ -1,0 +1,86 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Sora optional IAM-only intervention policy. No camera or audio data.",
+  "Resources": {
+    "PolicyLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${AWS::StackName}-policy"
+        },
+        "RetentionInDays": 7
+      }
+    },
+    "PolicyRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "WriteOwnLogs",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::GetAtt": [
+                      "PolicyLogs",
+                      "Arn"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "PolicyFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": {
+          "Fn::Sub": "${AWS::StackName}-policy"
+        },
+        "Runtime": "python3.12",
+        "Handler": "index.handler",
+        "MemorySize": 128,
+        "Timeout": 3,
+        "Role": {
+          "Fn::GetAtt": [
+            "PolicyRole",
+            "Arn"
+          ]
+        },
+        "Code": {
+          "ZipFile": "\"\"\"Versioned, deterministic intervention policy shared by desktop and AWS Lambda.\n\nNo diagnosis, arbitrary tool execution, images, or language model required.\n\"\"\"\nPOLICY_VERSION = 'sora-policy-1'\nGOALS = {'posture', 'distance', 'water', 'movement', 'eyes', 'sleep', 'fatigue', 'dark_camera', 'break_done'}\nACTIONS = {'defer', 'observe', 'remind', 'offer_break', 'resolved', 'wait'}\n\n\ndef validate_observation(value):\n    required = {'goal', 'stage', 'meeting', 'quiet', 'usable', 'resolved', 'overdue'}\n    if not isinstance(value, dict) or set(value) != required:\n        raise ValueError('Invalid observation fields')\n    if value['goal'] not in GOALS or type(value['stage']) is not int or value['stage'] not in (0, 1, 2):\n        raise ValueError('Invalid goal or stage')\n    if any(type(value[k]) is not bool for k in required - {'goal', 'stage'}):\n        raise ValueError('Observation flags must be boolean')\n    return value\n\n\ndef decide(value):\n    v = validate_observation(value)\n    if v['resolved']:\n        action, reason = 'resolved', 'Observed outcome or explicit user action completed the goal'\n    elif v['quiet'] or v['meeting']:\n        action, reason = 'defer', 'Respect manual quiet mode or possible meeting'\n    elif not v['usable']:\n        action, reason = 'observe', 'Wait for usable visual evidence; missing data is not recovery'\n    elif v['stage'] == 0:\n        action, reason = 'remind', 'Eligible observation warrants a first intervention'\n    elif v['stage'] == 1 and v['overdue'] and v['goal'] in ('posture', 'distance'):\n        action, reason = 'offer_break', 'Position has not recovered; offer an alternative action once'\n    else:\n        action, reason = 'wait', 'Continue observing without repeating the reminder'\n    return {'policy': POLICY_VERSION, 'action': action, 'reason': reason}\n\n\ndef handler(event, context):\n    # IAM-authenticated Lambda Invoke; intentionally no public function URL.\n    result = decide(event)\n    print('{\"component\":\"sora-policy\",\"action\":\"' + result['action'] + '\"}')\n    return result\n"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "FunctionArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "PolicyFunction",
+          "Arn"
+        ]
+      }
+    }
+  }
+}
