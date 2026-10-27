@@ -1,16 +1,46 @@
+# Python and local tooling
 .venv/
+venv/
 __pycache__/
-*.pyc
-sessions/
-logs/
-cloud_config.json
-cloud/deployment_receipt.json
-cloud/runtime_iam_policy.json
-ui_preferences.json
-posture_reference.json
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+.idea/
+.vscode/
+
+# Personal settings, calibration and history
+/settings.json
+/ui_preferences.json
+/posture_reference.json
+/sessions/
+/logs/
+
+# Local credentials and deployment output
 .aws/
 .env
+.env.*
+!.env.example
+*.pem
+*.key
+/cloud_config.json
+/cloud/deployment_receipt.json
+/cloud/runtime_iam_policy.json
+
+# Generated evaluation results and recordings
+/evaluation/*.json
+/evaluation/*.jsonl
+/evaluation/*.csv
 *.mp4
 *.avi
 *.mov
 *.webm
+*.zip
+Thumbs.db
+Desktop.ini
+.DS_Store

@@ -8,9 +8,10 @@ class RegisteredVessel:
     minimum_score = 0.4
     grace_seconds = 1.5
 
-    def __init__(self, model_path=None, factory=None):
+    def __init__(self, model_path=None, factory=None, max_gap=1.0):
         self.model_path = model_path or Path(__file__).parent / 'models/object_tracking_vittrack_2023sep.onnx'
         self.factory = factory
+        self.max_gap = max_gap
         self.clear()
 
     def clear(self):
@@ -47,7 +48,7 @@ class RegisteredVessel:
     def update(self, frame, now):
         if self.tracker is None:
             return None
-        if now - self.last_at > 1.0:
+        if now - self.last_at > self.max_gap:
             return self.lost()
         self.last_at = now
         located, roi = self.tracker.update(frame)

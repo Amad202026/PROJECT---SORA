@@ -58,7 +58,7 @@ async function navigate(next){const seq=++navigation;const markup=await (await f
  }
  if(page==='history'){await updateHistory();hit('See all activity',1280,644,112,45,showHistory);}
  const footer=document.createElement('div');footer.className='footer';
- if(page==='home'){button('Open camera',showCamera,footer);button('Timers & actions',showTimers,footer);button('Calibrate',()=>navigate('calibration'),footer);button('Agent activity',showAgent,footer);}
+ if(page==='home'){button('Open camera',showCamera,footer);if(state.demo)button('Record notifications',showRecording,footer);button('Timers & actions',showTimers,footer);button('Calibrate',()=>navigate('calibration'),footer);button('Agent activity',showAgent,footer);}
  button('Quit Sora',()=>modal('Quit Sora?',c=>{const p=document.createElement('p');p.textContent='The camera will stop and your session summary will be saved.';c.append(p);button('Quit',async()=>{await action('shutdown');document.querySelector('#details').close();notify('Sora stopped. You can close this tab.');},c);}),footer);
  const mode=document.createElement('span');mode.className='mode';mode.id='mode';footer.append(mode);screen.append(footer);renderState();
 }
@@ -83,7 +83,7 @@ function setupNotifications(){
  const toggles=[...screen.querySelectorAll('button[data-node-id="34:363"]')];setupSwitch(toggles[0],'Animated reminders',preferences.animation);toggles[0].onclick=()=>{preferences.animation=!preferences.animation;setupSwitch(toggles[0],'Animated reminders',preferences.animation);};
  setupSwitch(toggles[1],'Reminder alert sound',preferences.sound);toggles[1].onclick=()=>{preferences.sound=!preferences.sound;setupSwitch(toggles[1],'Reminder alert sound',preferences.sound);};
  text('123:1307','Transparent character reminders; turn off for a still character.');
- const preview=hit('Preview animations',550,746,385,24,()=>modal('Preview reminders',c=>{for(const [kind,label] of [['water','Water'],['posture','Posture'],['distance','Distance'],['fatigue','Eye closure'],['eyes','Break'],['sleep','Session limit']])button(label,()=>action('preview_notice',{kind}),c);}));preview.textContent='Preview animations';preview.style.color='#111';
+ if(state.demo){const preview=hit('Preview animations',550,746,385,24,showRecording);preview.textContent='Preview animations (demo)';preview.style.color='#111';}
  for(const [position,x] of [['center',546],['edge',969]]){const b=hit('Popup position '+position,x,503,388,240,()=>{preferences.position=position;highlight();});b.dataset.position=position;}
  function highlight(){screen.querySelectorAll('[data-position]').forEach(b=>b.style.outline=b.dataset.position===preferences.position?'4px solid #b2ff00':'none');}highlight();
 }
@@ -112,13 +112,39 @@ function showCamera(){
   const status=document.createElement('p');status.setAttribute('role','status');c.append(status);
   const img=document.createElement('img');img.id='debug-camera';img.className='debug-camera';img.alt='Live mirrored camera with upper-body tracking';img.hidden=true;c.append(img);
   const stats=document.createElement('p');stats.className='camera-debug-stats';c.append(stats);
+  const drinking=document.createElement('p');drinking.className='camera-debug-stats';drinking.setAttribute('role','status');c.append(drinking);
   const hint=document.createElement('p');hint.textContent='Closing this view keeps detection running during a session. In preview-only mode, closing it releases the camera.';c.append(hint);
   button('Close camera view',()=>document.querySelector('#details').close(),c);
-  modalRefresh=()=>{status.textContent=state.error||state.camera;stats.textContent=`Posture: ${state.posture.replaceAll('_',' ')} | FPS: ${state.fps} | ${state.phase==='running'?'Session running':'Preview only - no session time counted'}`;};modalRefresh();
+  modalRefresh=()=>{status.textContent=state.error||state.camera;stats.textContent=`Posture: ${state.posture.replaceAll('_',' ')} | FPS: ${state.fps} | ${state.phase==='running'?'Session running':'Preview only - no session time counted'}`;drinking.textContent=`Drinking: ${state.drinking_status} | Recorded: ${state.drink_count}`;};modalRefresh();
   modalCleanup=()=>{img.dataset.closed='true';if(img.src.startsWith('blob:'))URL.revokeObjectURL(img.src);action('close_debug_preview');};
  });
  action('open_debug_preview').then(ok=>{if(ok)cameraTick();});
 }
+
+const recordingNotices=[
+ ['posture','Posture','Postur'],['agent_break','Follow-up break offer','Jeda'],
+ ['distance','Screen distance','Jarak'],['eyes','Eye break','Jeda'],
+ ['movement','Stand and stretch','Jeda'],['water','Drink water','Minum'],
+ ['fatigue','Possible tiredness','Ngantuk'],['sleep','Session limit','Tidur'],
+ ['break_done','Break finished','Jeda'],['dark_camera','Low light','Ngantuk']
+];
+let lastRecordingKind='posture';
+function showRecording(){
+ if(!state.demo)return;
+ modal('Record notifications',c=>{
+  const intro=document.createElement('p');intro.textContent='Choose one reminder to show its desktop animation and caption immediately. No camera or calibration is needed. This is a manual preview, not a detected event.';c.append(intro);
+  const label=document.createElement('label');label.className='recording-hide';
+  const hide=document.createElement('input');hide.type='checkbox';hide.checked=true;
+  label.append(hide,document.createTextNode(' Hide this panel when showing a notification'));c.append(label);
+  const launch=async kind=>{if(await action('preview_notice',{kind})){lastRecordingKind=kind;if(hide.checked)document.querySelector('#details').close();}};
+  const grid=document.createElement('div');grid.className='recording-grid';c.append(grid);
+  recordingNotices.forEach(([kind,label,animation],i)=>{const b=button(`${i+1}. ${label}`,()=>launch(kind),grid);b.title=animation+'.gif';});
+  button('Replay last notification',()=>launch(lastRecordingKind),c);
+  button('Hide notification',()=>action('hide_notice_preview'),c);
+  const note=document.createElement('p');note.className='recording-note';note.textContent='Only one preview appears at a time. Selecting the same reminder restarts its animation. In previews, all three popup symbols only close the preview. For clean recording, end your live session first. Record the entire desktop so CAMY is captured; label this footage as a reminder preview.';c.append(note);
+ });
+}
+
 function showAgent(){modal('Agent activity',c=>{const body=document.createElement('div');c.append(body);modalRefresh=()=>{body.replaceChildren();for(const value of [state.agent.status,state.agent.cloud,state.meeting,state.ignore_meeting?'Meeting override: ON':'Meeting override: OFF','Head orientation: '+state.orientation+' (not gaze tracking)']){const p=document.createElement('p');p.textContent=value;body.append(p);}for(const e of state.agent.trace.slice(-12).reverse()){const p=document.createElement('pre');p.style.cssText='white-space:pre-wrap;font-size:12px';p.textContent=JSON.stringify(e,null,2);body.append(p);}};modalRefresh();button('Toggle meeting override',()=>action('ignore_meeting'),c);button('Download recent trace',()=>{const a=document.createElement('a');const url=URL.createObjectURL(new Blob([state.agent.trace.map(e=>JSON.stringify(e)).join('\n')],{type:'application/x-ndjson'}));a.href=url;a.download='sora-agent-trace.jsonl';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);},c);});}
 function showTimers(){modal('Session reminders',c=>{const list=document.createElement('div');c.append(list);modalRefresh=()=>{list.replaceChildren();for(const [name,t]of Object.entries(state.timers)){const p=document.createElement('div');p.className='row';p.textContent=`${name==='sleep'?'Session limit':name}: ${t.enabled?duration(t.remaining)+' remaining':'Off'}`;list.append(p);}const status=document.createElement('p');status.textContent=state.drinking_status+' · '+state.drink_count+' recorded drinks';list.append(status);if(state.in_break){const p=document.createElement('p');p.textContent='Break: '+duration(state.break_remaining)+' remaining';list.append(p);}};modalRefresh();const details=document.createElement('p');details.textContent=state.drinking_status+' · '+state.drink_count+' recorded events';c.append(details);button('I drank',()=>action('drink'),c);button('Undo automatic sip',()=>action('undo_drink'),c);button(state.quiet?'Turn quiet mode off':'Quiet mode (mute reminders)',()=>action('quiet'),c);button('Show camera & calibration',()=>{document.querySelector('#details').close();navigate('camera');},c);button('I moved',()=>action('move'),c);button('Start / resume break',()=>action(state.in_break?'resume_break':'break'),c);const p=document.createElement('p');p.textContent='Water uses elapsed unpaused time. Movement, screen breaks and session limit use observed presence. Likely sips can be estimated automatically. Confirm manually if missed; undo if incorrect. Quiet mode mutes reminders while observations continue.';c.append(p);});}
 async function updateHistory(){const h=await api('api/history');if(page!=='history')return;screen.querySelectorAll('#activity-list,.chart,.empty-chart').forEach(e=>e.remove());text('52:174',h.near_percent===null?'—':h.near_percent+'%');text('50:1000','Time near reference');text('52:173','Of usable observations');text('50:977',String(Math.floor(h.active_seconds/3600)).padStart(2,'0'));text('50:978',String(Math.floor(h.active_seconds/60)%60).padStart(2,'0'));text('52:181',h.completed_breaks+'x');text('44:444','Observed presence · minutes per hour');$('44:444').style.fontSize='23px';

@@ -4,3 +4,5 @@ html,body{height:100%;width:100%;overflow:hidden}#details .event{padding:14px 0;
 html,body,#viewport{overflow:clip}
 
 .sora-brand{position:absolute;left:45px;top:63px;width:82px;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}.sora-brand img{width:66px;height:50px;object-fit:contain;filter:invert(1)}.sora-brand span{font:700 21px 'Plus Jakarta Sans',sans-serif;letter-spacing:2px;color:white}.debug-camera{display:block;width:100%;max-height:52vh;object-fit:contain;background:#182033;border-radius:10px}.debug-camera[hidden]{display:none}.camera-debug-stats{font-size:13px;color:#475569}.footer{gap:18px;font-size:14px}.footer .mode{font-size:12px}
+
+.footer{gap:10px 16px;flex-wrap:wrap}.footer button{white-space:nowrap}.footer .mode{flex-basis:100%;margin-left:0}.recording-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:16px 0}dialog .recording-grid button.action{margin:0;text-align:left;min-height:48px}.recording-hide{display:flex;align-items:center;gap:8px;line-height:1.5}.recording-note{font-size:13px;color:#475569}@media(max-width:500px){.recording-grid{grid-template-columns:1fr}}

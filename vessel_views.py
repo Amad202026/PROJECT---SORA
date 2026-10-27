@@ -30,10 +30,14 @@ class VesselViews:
             view=frame[:int(height*.8)]
             inverse=np.array([[1,0,0],[0,1,0]],float)
         else:
-            angle=90 if mode==2 else -90
-            matrix=cv2.getRotationMatrix2D((width/2,height/2),angle,1)
-            view=cv2.warpAffine(frame,matrix,(width,height))
-            inverse=cv2.invertAffineTransform(matrix)
+            # Rotate the entire image; warpAffine on the original canvas clipped
+            # bottles near the left/right edges of a landscape camera view.
+            if mode==2:
+                view=cv2.rotate(frame,cv2.ROTATE_90_CLOCKWISE)
+                inverse=np.array([[0,1,0],[-1,0,height-1]],float)
+            else:
+                view=cv2.rotate(frame,cv2.ROTATE_90_COUNTERCLOCKWISE)
+                inverse=np.array([[0,-1,width-1],[1,0,0]],float)
         for detection in self.detector.detect(view):
             item=dict(detection)
             item['box']=map_box(item['box'],inverse,width,height)

@@ -45,7 +45,7 @@ class DesktopPopup:
         self.key='#090a0b';self.root.configure(bg=self.key)
         self.root.wm_attributes('-transparentcolor',self.key)
         self.canvas=tk.Canvas(self.root,width=420,height=400,bg=self.key,highlightthickness=0)
-        self.canvas.pack();self.visible_key=None;self.player=None;self.photo=None;self.next_frame=0
+        self.canvas.pack();self.visible_key=None;self.preview_revision=0;self.player=None;self.photo=None;self.next_frame=0
         self.assets=app.root/'assets/animations'
         self.manifest=json.loads((self.assets/'manifest.json').read_text())
         self.root.bind('<Escape>',lambda e:self.act('dismiss'))
@@ -97,8 +97,9 @@ class DesktopPopup:
     def pump(self):
         with self.app.lock:
             c=self.app.controller;notice=c.notice();preferences=c.preferences.copy()
-        if notice!=self.visible_key:
-            self.visible_key=notice
+            revision=getattr(c,'preview_revision',0)
+        if notice!=self.visible_key or (notice and notice[1]=='preview' and revision!=self.preview_revision):
+            self.visible_key=notice;self.preview_revision=revision
             if notice:self.show(notice,preferences)
             else:
                 self.root.withdraw()

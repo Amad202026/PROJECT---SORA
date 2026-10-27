@@ -50,11 +50,14 @@ class Application:
                 if action:
                     try:
                         with self.lock:
-                            if action in ('dismiss','snooze','acknowledge') and data.get('kind')=='agent_break':
+                            if action in ('dismiss','snooze','acknowledge') and data.get('kind')=='agent_break' and data.get('notice_id')!='preview':
                                 goal=c.agent.current
                                 if not goal or goal['stage']!=2 or data.get('notice_id')!=f"{goal['goal']}:{goal['generation']}":
                                     raise ValueError('This reminder has changed. Use the current reminder.')
-                            if action=='start':c.start()
+                            if action in ('dismiss','snooze','acknowledge') and data.get('notice_id')=='preview':
+                                if c.preview_notice!=(data.get('kind'),'preview'):raise ValueError('This preview has already closed.')
+                                c.preview_notice=None
+                            elif action=='start':c.start()
                             elif action=='pause':self.debug_preview=False;c.pause();calibration.active=False;preview_requested=False;c.calibrating=False
                             elif action=='resume':c.resume()
                             elif action=='end':self.debug_preview=False;c.end();calibration.active=False;preview_requested=False
@@ -87,8 +90,11 @@ class Application:
                             elif action=='ignore_meeting':c.ignore_meeting=not c.ignore_meeting;c.meeting_active=False;c.write('meeting_override',enabled=c.ignore_meeting)
                             elif action=='quiet':c.quiet=not c.quiet;c.write('quiet_mode',enabled=c.quiet)
                             elif action=='preview_notice':
-                                if data.get('kind') not in ('water','movement','eyes','sleep','posture','distance','fatigue'):raise ValueError('Unknown preview')
+                                if not c.demo:raise ValueError('Notification recording buttons are available in demo mode only.')
+                                if data.get('kind') not in ('water','movement','eyes','sleep','posture','distance','fatigue','agent_break','break_done','dark_camera'):raise ValueError('Unknown preview')
                                 c.preview_notice=(data['kind'],'preview')
+                                c.preview_revision=getattr(c,'preview_revision',0)+1
+                            elif action=='hide_notice_preview':c.preview_notice=None
                             elif action=='acknowledge':
                                 kind=data['kind']
                                 if c.preview_notice:c.preview_notice=None
@@ -200,6 +206,7 @@ class Application:
                         if drink_engine and drink_engine.box is not None:
                             x1,y1,x2,y2=map(int,drink_engine.box)
                             cv2.rectangle(preview,(width-1-x2,y1),(width-1-x1,y2),(255,200,0),2)
+                            cv2.putText(preview,drink_engine.vessel_label,(max(0,width-1-x2),max(15,y1-6)),cv2.FONT_HERSHEY_SIMPLEX,.5,(255,200,0),1)
                         if face:
                             x,y=map(int,face['mouth']);cv2.circle(preview,(width-1-x,y),4,(255,0,255),-1)
                         draw_tracking_overlay(preview,points,state,c.fps)

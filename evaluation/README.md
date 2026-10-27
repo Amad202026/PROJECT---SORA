@@ -1,27 +1,26 @@
-# Reproducible evaluation
+# Checking SORA
 
-Run all tests:
-`python -B -m unittest test_ui test_timers test_visual_features test_agent test_delivery -q`
+## Application behavior
 
-Run `python replay_agent.py` for six synthetic control-policy scenarios. These
-are explicitly marked synthetic; they do not measure camera/model accuracy.
-Review `policy_trace.jsonl` for observation -> decision -> tool -> outcome.
+Run the unit tests from the project root:
 
-## Real video test (requires your participation)
+```powershell
+.\.venv\Scripts\python.exe -B -m unittest test_ui test_timers test_visual_features test_agent test_delivery -q
+```
 
-Record a local video with everyone's consent. Do not upload it by default.
-Start with 3 seconds in your reference posture, with head/shoulders visible.
-Then record cup, bottle and straw sips with at least 10 seconds between sips;
-include showing a cup without drinking, touching your face, talking, turning
-away, looking down, poor lighting and an empty chair. Repeat with varied
-lighting and more than one consenting participant before claiming general accuracy.
+`replay_agent.py` checks six scenarios using synthetic observations: recovery, a persistent position, tracking loss, meeting suppression, dismissal, and a corrected drinking record. It writes results here. These files are generated locally and excluded from Git.
 
-Suggested minimum pilot: 10 positive cycles per vessel type plus 30 negative
-actions. Do not tune on the same videos used for final reported metrics. Keep
-the 1.6 baseline archive for a fair comparison on identical clips/settings.
+```powershell
+.\.venv\Scripts\python.exe -B replay_agent.py
+```
 
-Watch the video and annotate each actual visible drinking-motion interval
-(approach to completed retreat), in seconds. `labels.csv`:
+These checks cover program behavior. They do not establish camera accuracy.
+
+## Recorded video
+
+Use a video recorded with the participants' permission. Start with a few seconds in the reference position, with the head and shoulders visible. Include drinking from different containers and actions that should not count as a drink, such as touching the face or holding a bottle nearby. Leave at least ten seconds between drinking cycles.
+
+Review the video and record each visible drinking interval in a CSV file:
 
 ```csv
 start_seconds,end_seconds
@@ -29,34 +28,23 @@ start_seconds,end_seconds
 27.0,31.8
 ```
 
-These rows are an illustration, not fabricated ground truth. Replace them with
-reviewed times. A negative-only clip has just the header. Run:
+Those rows are examples. Replace them with the times from your own recording.
 
 ```powershell
-.\.venv\Scripts\python.exe evaluate_video.py C:\path\test.mp4 --labels C:\path\labels.csv --out evaluation\cup_result.json
-.\.venv\Scripts\python.exe evaluate_video.py C:\path\straw.mp4 --labels C:\path\straw_labels.csv --straw --out evaluation\straw_result.json
+.\.venv\Scripts\python.exe evaluate_video.py C:\clips\test.mp4 --labels C:\clips\labels.csv --out evaluation\video_result.json
 ```
 
-No webcam is opened by this command. It runs the real OpenCV 5 person/pose and
-vessel pipeline plus face landmarks, counts misses and extra/duplicate events,
-and reports precision, recall, coverage and offline throughput. One predicted
-event may match only one annotated interval, with up to 2 seconds after retreat.
-Missing denominator metrics are null, never inflated to 100%. Model load time
-is excluded from throughput. Posture labels are observations, not independently
-validated posture accuracy. Frames, raw face landmarks and video are not copied
-to the report or uploaded. Keep private video files outside the submission zip.
+The evaluator reads the supplied video rather than opening a webcam. Its report includes matched, missed, and extra events, along with tracking coverage and processing rate. Keep the video outside the repository. Use separate recordings for tuning and final evaluation.
 
-## Human acceptance checks
+## Manual checks
 
-- Verify all 6 original animations, transparent background, English caption,
-  × dismiss, ✓ action and Ⅱ snooze. Test mouse and keyboard.
-- Posture: move down briefly, stay lower through the window, then recover.
-- Dismiss must stop follow-ups. Unknown tracking must not count as recovery.
-- Pause/End must release webcam. Start a new session with timers reset.
-- Automatic meeting detection is opt-in; test a real call and a non-call mic
-  session. False meeting signals are expected; test manual override.
-- Distance is relative; moving the camera requires recalibration.
-- Yawns/closed eyes are unvalidated cues; speech, glasses and occlusion are negatives.
-- Cloud: verify one AWS-sourced trace and one network-failure local fallback.
+- Calibrate, hold a lower-head position, then return to the reference.
+- Check that missing tracking does not count as recovery.
+- Check dismiss, snooze, pause, end, and restart.
+- Try a bottle and a cup; check that each completed drinking cycle counts only once.
+- Hold a container near the face without drinking and check for false records.
+- Check manual drink confirmation and undo.
+- Preview the six animations and check the caption and controls.
+- Verify the normal launcher hides recording controls and the demo launcher shows them.
 
-The distribution contains no invented real-video accuracy results.
+Record failures as well as successful attempts. Previewing a notification is a UI check, not a detection result.
